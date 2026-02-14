@@ -14,6 +14,7 @@ public class HomeController : Controller
     private readonly GraphServiceClient _graphServiceClient;
 
     // The runtime sees this and "Injects" the client we configured in Program.cs
+
     public HomeController(GraphServiceClient graphServiceClient)
     {
         _graphServiceClient = graphServiceClient;
@@ -26,30 +27,30 @@ public class HomeController : Controller
         {
             // Attempting the "Read" operation
 
-            //var user = await _graphServiceClient.Me.GetAsync();
-            //var viewModel = new UserProfileViewModel
-            //{
-            //   DisplayName = user?.DisplayName ?? "Unknown User",
-            //   JobTitle = user?.JobTitle ?? "No Title Set",
-            //   OfficeLocation = user?.OfficeLocation ?? "Not Assigned",
-            //};
+            var user = await _graphServiceClient.Me.GetAsync();
+            var viewModel = new UserProfileViewModel
+            {
+               DisplayName = user?.DisplayName ?? "Unknown User",
+               JobTitle = user?.JobTitle ?? "No Title Set",
+               OfficeLocation = user?.OfficeLocation ?? "Not Assigned",
+            };
 
             // 2. Fetch Last 10 Emails
             // .Select limits the "payload" size—just like minimizing DMA transfers
             var messages = await _graphServiceClient.Me.Messages
             .GetAsync(requestConfiguration => {
                 requestConfiguration.QueryParameters.Top = 10;
-                requestConfiguration.QueryParameters.Select = new string[] { "subject", "from", "receivedDateTime", "bodyPreview" };
+                requestConfiguration.QueryParameters.Select = new string[] { "id", "subject", "from", "receivedDateTime" };
                 requestConfiguration.QueryParameters.Orderby = new string[] { "receivedDateTime desc" };
             });
 
             var mailList = messages?.Value?.Select(m => new MailboxItemViewModel
             {
                 Subject = m.Subject ?? "No Subject",
-                From = m.From?.EmailAddress?.Name ?? "Unknown",
-                Received = m.ReceivedDateTime,
-                BodyPreview = m.BodyPreview ?? ""
-            }).ToList();            
+                Sender = m.From?.EmailAddress?.Name ?? "Unknown",
+                ReceivedDateTime = m.ReceivedDateTime,
+                MessageId = m.Id,
+            }).ToList() ?? new List<MailboxItemViewModel>();            
 
             return View(mailList);
         }
