@@ -33,13 +33,13 @@
                             <tr>
                                 <td><strong>@item.Sender</strong></td>
                                 <td>
-                                    <div class="text-primary fw-600">@item.Subject</div>
+                                    <a href="@item.WebLink" target="_blank" class="text-decoration-none">
+                                        <div class="text-primary fw-600">@item.Subject</div>
+                                    </a>
                                 </td>
                                 <td>@item.ReceivedDateTime?.ToString("dd/MM/yyyy HH:mm")</td>
                                 <td>
-                                    <a href="@item.WebLink" target="_blank" class="btn btn-sm btn-outline-primary">
-                                        View
-                                    </a>
+                                    <button class="btn btn-sm btn-outline-primary">View</button>
                                 </td>
                             </tr>
                         }
