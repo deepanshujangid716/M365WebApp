@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Graph; // The SDK
 using Microsoft.Identity.Web;
 using M365WebApp.Models;
+using Microsoft.Graph.Models;
 
 namespace M365WebApp.Controllers;
 
@@ -25,9 +26,8 @@ public class HomeController : Controller
     {
         try 
         {
-            // Attempting the "Read" operation
-
             var user = await _graphServiceClient.Me.GetAsync();
+            
             var viewModel = new UserProfileViewModel
             {
                DisplayName = user?.DisplayName ?? "Unknown User",
@@ -40,7 +40,7 @@ public class HomeController : Controller
             var messages = await _graphServiceClient.Me.Messages
             .GetAsync(requestConfiguration => {
                 requestConfiguration.QueryParameters.Top = 10;
-                requestConfiguration.QueryParameters.Select = new string[] { "id", "subject", "from", "receivedDateTime" };
+                requestConfiguration.QueryParameters.Select = new string[] { "webLink", "subject", "from", "receivedDateTime" };
                 requestConfiguration.QueryParameters.Orderby = new string[] { "receivedDateTime desc" };
             });
 
@@ -49,9 +49,12 @@ public class HomeController : Controller
                 Subject = m.Subject ?? "No Subject",
                 Sender = m.From?.EmailAddress?.Name ?? "Unknown",
                 ReceivedDateTime = m.ReceivedDateTime,
-                MessageId = m.Id,
+                WebLink = m.WebLink,
             }).ToList() ?? new List<MailboxItemViewModel>();            
 
+            ViewData["DisplayName"] = user?.DisplayName;
+            ViewData["JobTitle"] = user?.JobTitle;
+            ViewData["OfficeLocation"] = user?.OfficeLocation;
             return View(mailList);
         }
         catch (ServiceException ex) when (ex.Message.Contains("Continuous Access Evaluation"))

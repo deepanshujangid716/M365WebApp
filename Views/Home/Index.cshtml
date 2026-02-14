@@ -28,20 +28,21 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var item in Model)
-                            {
-                                <tr>
-                                    <td><strong>@item.Sender</strong></td>
-                                    <td>
-                                        <div class="text-primary fw-600">@item.Subject</div>
-                                        <div class="small text-muted text-truncate" style="max-width: 400px;">@item.OutlookDeepLink</div>
-                                    </td>
-                                    <td>@item.ReceivedDateTime?.ToString("dd/MM/yyyy HH:mm")</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-primary">View</button>
-                                    </td>
-                                </tr>
-                            }
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td><strong>@item.Sender</strong></td>
+                                <td>
+                                    <div class="text-primary fw-600">@item.Subject</div>
+                                </td>
+                                <td>@item.ReceivedDateTime?.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    <a href="@item.WebLink" target="_blank" class="btn btn-sm btn-outline-primary">
+                                        View
+                                    </a>
+                                </td>
+                            </tr>
+                        }
                         </tbody>
                     </table>
                 </div>
