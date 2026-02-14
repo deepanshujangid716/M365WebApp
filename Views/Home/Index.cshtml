@@ -1,0 +1,17 @@
+﻿@{
+    ViewData["Title"] = "M365 Profile";
+}
+
+<div class="text-center">
+<h1 class="display-4">Welcome, @ViewData["DisplayName"]</h1>
+    <hr />
+    <div class="card" style="width: 18rem; margin: auto;">
+        <div class="card-body">
+            <h5 class="card-title">User Metadata</h5>
+            <p class="card-text"><strong>Job Title:</strong> @(ViewData["JobTitle"] ?? "Not Available")</p>
+            <p class="card-text"><strong>Office:</strong> @ViewData["OfficeLocation"]</p>
+        </div>
+    </div>
+</div>
+
+
