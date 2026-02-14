@@ -1,29 +1,60 @@
-﻿@model IEnumerable<Microsoft.Graph.Models.Message>
+﻿@model List<M365WebApp.Models.MailboxItemViewModel>
 
-<div class="text-center">
-    <div class="text-center">
-    <h1 class="display-4">Welcome, @ViewData["DisplayName"]</h1>
-        
-    <table class="table table-striped text-start">
-        <thead>
-            <tr>
-                <th>Subject</th>
-                <th>Received</th>
-                <th>From</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (Model != null)
-            {
-                foreach (var mail in Model)
-                {
+@{
+    ViewData["Title"] = "Inbox Monitor";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-envelope-open"></i> Recent Mailbox Activity</h2>
+        <span class="badge bg-info text-dark">Top 10 Messages</span>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
                     <tr>
-                        <td>@mail.Subject</td>
-                        <td>@mail.ReceivedDateTime?.ToString("yyyy-MM-dd HH:mm")</td>
-                        <td>@mail.From?.EmailAddress?.Name</td>
+                        <th style="width: 20%;">Sender</th>
+                        <th style="width: 50%;">Subject & Preview</th>
+                        <th style="width: 20%;">Received</th>
+                        <th style="width: 10%;">Action</th>
                     </tr>
-                }
-            }
-        </tbody>
-    </table>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var email in Model)
+                        {
+                            <tr>
+                                <td class="text-truncate" style="max-width: 150px;">
+                                    <strong>@email.From</strong>
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-primary">@email.Subject</div>
+                                    <small class="text-muted d-block text-truncate" style="max-width: 400px;">
+                                        @email.BodyPreview
+                                    </small>
+                                </td>
+                                <td>
+                                    @email.Received?.ToString("g")
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-secondary">View</button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center py-4 text-muted">
+                                No messages found in this mailbox.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>

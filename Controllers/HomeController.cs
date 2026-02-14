@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Authorization; // 1. Add this namespace
 using Microsoft.AspNetCore.Mvc;
-using M365WebApp.Models;
 using Microsoft.Graph; // The SDK
-using Microsoft.Identity.Web; // This one resolves [AuthorizeForScopes]
+using Microsoft.Identity.Web;
+using M365WebApp.Models;
 
 namespace M365WebApp.Controllers;
 
@@ -20,29 +20,38 @@ public class HomeController : Controller
     }
 
     [AuthorizeForScopes(ScopeKeySection = "MicrosoftGraph:Scopes")]
-//    [AuthorizeForScopes(Scopes = new[] { "User.Read", "Mail.Read" })]
     public async Task<IActionResult> Index()
     {
         try 
         {
             // Attempting the "Read" operation
-            var user = await _graphServiceClient.Me.GetAsync();
 
-            ViewData["DisplayName"] = user?.DisplayName ?? "Unknown User";
-            ViewData["JobTitle"] = user?.JobTitle ?? "No Title Set";
-            ViewData["OfficeLocation"] = user?.OfficeLocation ?? "Not Assigned";
+            //var user = await _graphServiceClient.Me.GetAsync();
+            //var viewModel = new UserProfileViewModel
+            //{
+            //   DisplayName = user?.DisplayName ?? "Unknown User",
+            //   JobTitle = user?.JobTitle ?? "No Title Set",
+            //   OfficeLocation = user?.OfficeLocation ?? "Not Assigned",
+            //};
 
-        // 2. Fetch Last 10 Emails
-        // .Select limits the "payload" size—just like minimizing DMA transfers
-        var messages = await _graphServiceClient.Me.Messages
+            // 2. Fetch Last 10 Emails
+            // .Select limits the "payload" size—just like minimizing DMA transfers
+            var messages = await _graphServiceClient.Me.Messages
             .GetAsync(requestConfiguration => {
                 requestConfiguration.QueryParameters.Top = 10;
-                requestConfiguration.QueryParameters.Select = new string[] { "subject", "receivedDateTime", "from" };
+                requestConfiguration.QueryParameters.Select = new string[] { "subject", "from", "receivedDateTime", "bodyPreview" };
                 requestConfiguration.QueryParameters.Orderby = new string[] { "receivedDateTime desc" };
             });
 
-            return View(messages?.Value);
-//            return View();
+            var mailList = messages?.Value?.Select(m => new MailboxItemViewModel
+            {
+                Subject = m.Subject ?? "No Subject",
+                From = m.From?.EmailAddress?.Name ?? "Unknown",
+                Received = m.ReceivedDateTime,
+                BodyPreview = m.BodyPreview ?? ""
+            }).ToList();            
+
+            return View(mailList);
         }
         catch (ServiceException ex) when (ex.Message.Contains("Continuous Access Evaluation"))
         {
@@ -67,6 +76,7 @@ public class HomeController : Controller
         catch (Exception ex) 
         {
             // This is your "Kernel Panic" - something totally unexpected happened.
+
 //            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
 //            return Content($"Graph API Error: {ex.Message} -- StackTrace: {ex.StackTrace}");
 //            var scopes = builder.Configuration.GetSection("MicrosoftGraph:Scopes").Value;
