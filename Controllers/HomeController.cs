@@ -20,6 +20,7 @@ public class HomeController : Controller
     }
 
     [AuthorizeForScopes(ScopeKeySection = "MicrosoftGraph:Scopes")]
+//    [AuthorizeForScopes(Scopes = new[] { "User.Read", "Mail.Read" })]
     public async Task<IActionResult> Index()
     {
         try 
@@ -31,9 +32,19 @@ public class HomeController : Controller
             ViewData["JobTitle"] = user?.JobTitle ?? "No Title Set";
             ViewData["OfficeLocation"] = user?.OfficeLocation ?? "Not Assigned";
 
-            return View();
+        // 2. Fetch Last 10 Emails
+        // .Select limits the "payload" size—just like minimizing DMA transfers
+        var messages = await _graphServiceClient.Me.Messages
+            .GetAsync(requestConfiguration => {
+                requestConfiguration.QueryParameters.Top = 10;
+                requestConfiguration.QueryParameters.Select = new string[] { "subject", "receivedDateTime", "from" };
+                requestConfiguration.QueryParameters.Orderby = new string[] { "receivedDateTime desc" };
+            });
+
+            return View(messages?.Value);
+//            return View();
         }
-        catch (ServiceException ex) 
+        catch (ServiceException ex) when (ex.Message.Contains("Continuous Access Evaluation"))
         {
             // 1. Handle "MsalUiRequiredException" - This happens if the token is 
             // stale and the user needs to physically log in again.
@@ -53,10 +64,14 @@ public class HomeController : Controller
             ViewData["ErrorMessage"] = $"M365 API Error: {ex.Message}";
             return View("Error");
         }
-        catch (Exception)
+        catch (Exception ex) 
         {
             // This is your "Kernel Panic" - something totally unexpected happened.
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+//            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+//            return Content($"Graph API Error: {ex.Message} -- StackTrace: {ex.StackTrace}");
+//            var scopes = builder.Configuration.GetSection("MicrosoftGraph:Scopes").Value;
+//            return Content($"Error: {ex.Message} | Attempted Scopes: {scopes}");
+                return Content($"Error: {ex.Message}");
         }
     }
     public IActionResult Privacy()

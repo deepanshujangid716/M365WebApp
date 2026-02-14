@@ -1,15 +1,46 @@
-﻿@{
-    ViewData["Title"] = "M365 Profile";
-}
+﻿@model IEnumerable<Microsoft.Graph.Models.Message>
 
 <div class="text-center">
-<h1 class="display-4">Welcome, @ViewData["DisplayName"]</h1>
-    <hr />
-    <div class="card" style="width: 18rem; margin: auto;">
-        <div class="card-body">
-            <h5 class="card-title">User Metadata</h5>
-            <p class="card-text"><strong>Job Title:</strong> @(ViewData["JobTitle"] ?? "Not Available")</p>
-            <p class="card-text"><strong>Office:</strong> @ViewData["OfficeLocation"]</p>
+    <div class="text-center">
+    <h1 class="display-4">Welcome, @ViewData["DisplayName"]</h1>
+    
+    @if (Model == null)
+    {
+        <div class="alert alert-warning">
+            Could not load emails. Check your API permissions in Entra ID.
         </div>
+    }
+    else
+    {
+        <table class="table">
+            @foreach (var mail in Model)
+            {
+                <tr><td>@mail.Subject</td></tr>
+            }
+        </table>
+    }
     </div>
+    
+    <table class="table table-striped text-start">
+        <thead>
+            <tr>
+                <th>Subject</th>
+                <th>Received</th>
+                <th>From</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null)
+            {
+                foreach (var mail in Model)
+                {
+                    <tr>
+                        <td>@mail.Subject</td>
+                        <td>@mail.ReceivedDateTime?.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>@mail.From?.EmailAddress?.Name</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
 </div>

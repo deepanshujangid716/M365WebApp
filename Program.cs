@@ -11,7 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"))
-    .EnableTokenAcquisitionToCallDownstreamApi(new string[] { "User.Read" }) // Request the token
+    .EnableTokenAcquisitionToCallDownstreamApi(new string[] { "User.Read", "Mail.Read" })
     .AddMicrosoftGraph(builder.Configuration.GetSection("MicrosoftGraph")) // Dependency Injection for Graph
     .AddInMemoryTokenCaches(); // Store tokens in RAM (volatile)
 
