@@ -3,24 +3,7 @@
 <div class="text-center">
     <div class="text-center">
     <h1 class="display-4">Welcome, @ViewData["DisplayName"]</h1>
-    
-    @if (Model == null)
-    {
-        <div class="alert alert-warning">
-            Could not load emails. Check your API permissions in Entra ID.
-        </div>
-    }
-    else
-    {
-        <table class="table">
-            @foreach (var mail in Model)
-            {
-                <tr><td>@mail.Subject</td></tr>
-            }
-        </table>
-    }
-    </div>
-    
+        
     <table class="table table-striped text-start">
         <thead>
             <tr>

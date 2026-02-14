@@ -71,7 +71,14 @@ public class HomeController : Controller
 //            return Content($"Graph API Error: {ex.Message} -- StackTrace: {ex.StackTrace}");
 //            var scopes = builder.Configuration.GetSection("MicrosoftGraph:Scopes").Value;
 //            return Content($"Error: {ex.Message} | Attempted Scopes: {scopes}");
-                return Content($"Error: {ex.Message}");
+
+            if (ex.Message.Contains("IDW10502") || ex.InnerException?.Message.Contains("IDW10502") == true)
+            {
+                throw; 
+            }
+
+            return View("Error", new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+//            return Content($"Error: {ex.Message}");
         }
     }
     public IActionResult Privacy()
