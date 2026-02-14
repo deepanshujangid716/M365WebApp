@@ -19,31 +19,46 @@ public class HomeController : Controller
         _graphServiceClient = graphServiceClient;
     }
 
-[AuthorizeForScopes(ScopeKeySection = "MicrosoftGraph:Scopes")]
-public async Task<IActionResult> Index()
-{
-    try 
+    [AuthorizeForScopes(ScopeKeySection = "MicrosoftGraph:Scopes")]
+    public async Task<IActionResult> Index()
     {
-        var user = await _graphServiceClient.Me.GetAsync();
+        try 
+        {
+            // Attempting the "Read" operation
+            var user = await _graphServiceClient.Me.GetAsync();
 
-        ViewData["DisplayName"] = user?.DisplayName ?? "Unknown";
-        ViewData["JobTitle"] = user?.JobTitle ?? "No Title";
-        ViewData["OfficeLocation"] = user?.OfficeLocation ?? "No Location";
+            ViewData["DisplayName"] = user?.DisplayName ?? "Unknown User";
+            ViewData["JobTitle"] = user?.JobTitle ?? "No Title Set";
+            ViewData["OfficeLocation"] = user?.OfficeLocation ?? "Not Assigned";
 
-        return View();
+            return View();
+        }
+        catch (ServiceException ex) 
+        {
+            // 1. Handle "MsalUiRequiredException" - This happens if the token is 
+            // stale and the user needs to physically log in again.
+            if (ex.InnerException is Microsoft.Identity.Client.MsalUiRequiredException)
+            {
+                throw; // This triggers the [AuthorizeForScopes] to redirect the user to Microsoft Login
+            }
+
+            // 2. Handle Rate Limiting (HTTP 429) - Like a bus busy signal
+            if (ex.ResponseStatusCode == 429)
+            {
+                ViewData["ErrorMessage"] = "The system is busy. Please wait a moment before retrying.";
+                return View("Error");
+            }
+
+            // 3. Log other Graph-specific errors
+            ViewData["ErrorMessage"] = $"M365 API Error: {ex.Message}";
+            return View("Error");
+        }
+        catch (Exception)
+        {
+            // This is your "Kernel Panic" - something totally unexpected happened.
+            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
     }
-    // This specific exception tells the app: "The user needs to interact with the UI"
-    catch (MicrosoftIdentityWebChallengeUserException)
-    {
-        // Re-throw it so the [AuthorizeForScopes] attribute can catch it 
-        // and redirect the user to the Microsoft Consent page.
-        throw; 
-    }
-    catch (Exception ex)
-    {
-        return Content($"General Fault: {ex.Message}");
-    }
-}
     public IActionResult Privacy()
     {
         return View();
